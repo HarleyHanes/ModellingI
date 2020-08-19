@@ -1,7 +1,7 @@
 %      PROGRAM TRAP_METHOD.M
 %
   clear all
-
+set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 % 
 % Define variables - everything is the same as implicit Euler until AA
 %

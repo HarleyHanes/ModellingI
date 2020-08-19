@@ -1,7 +1,7 @@
 %This program plots the solutions for various numerical techniques against
 %the analytical solution for the spring equation
 %It also plots the convergence rate for the various methods
-
+set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %Define parameters
 clear
 m = 4; %mass
@@ -37,9 +37,16 @@ y(1) = y0; %initial position
 
 for j=2:N %number of time points
    t = T(j); %current time
-   y(j) = exp(-c*t/(2*m))*(a1*cos(nu*t) + a2*sin(nu*t));   % True solution
    z(:,j) = AA*z(:,j-1);                                   % Implicit Euler
    r(:,j) = AA2*AA1*r(:,j-1);                              % Trapezoidal
+end
+
+%Get true solution
+tTrue=linspace(min(T),max(T),200);
+for jtTrue=2:length(tTrue)
+   t=tTrue(jtTrue);
+   y(jtTrue) = exp(-c*t/(2*m))*(a1*cos(nu*t) + a2*sin(nu*t));   % True solution
+     
 end
 
 %Solve using ode23
@@ -51,12 +58,15 @@ DisplacementZ = z(1,:); %vector of positions at all times
 DisplacementR = r(1,:);
 DisplacementO = n(:,1);
 
-plot(T,DisplacementZ,'-g',T,DisplacementR,'-b',T,DisplacementO,'-y',T,y,'--r',T,0*DisplacementZ,'linewidth',2);
+plot(T,DisplacementZ,'.g',T,DisplacementR,'--b',T,DisplacementO,':y','linewidth',2);
+hold on
+plot(tTrue,y,'-r','linewidth',2)
+plot(T,0*DisplacementZ,'linewidth',2)
 h = gca;
 set(h,'FontSize',[18]);
 xlabel('Time (s)')
 ylabel('Displacement (m)')
-legend('Implicit Euler','Trapezoidal','Ode23','True')
+legend('Implicit Euler','Trapezoidal','Ode23','True','Displacement')
 
 
 

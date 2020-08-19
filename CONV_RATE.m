@@ -1,13 +1,14 @@
 %This program determines convergence rate (i.e. error as a function of step
 %size) for the implicit Euler and trapezoidal methods
 
+set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %Define parameters
 clear
 m = 4; %mass
 k = 16; %stiffness
 c = 2; %damping
 
-numberofstepsizes = 20; %how many step sizes to test
+numberofstepsizes = 5; %how many step sizes to test
 a = 0; %start at 10^a
 b = -6; %end at 10^b (doesn't run in a reasonable time if b=-7)
 Ks = logspace(a,b,numberofstepsizes); %create a vector of step sizes, log-spaced
@@ -65,11 +66,21 @@ end
 
 %Plot error for both methods as a function of step size
 figure()
-semilogx(Ks,EulerError,'-g',Ks,TrapError,'-b',Ks,0*EulerError,'linewidth',2);
+loglog(Ks,EulerError,'s-g',Ks,TrapError,'o-b');%Ks,0*EulerError,
 h = gca;
 set(h, 'Xdir', 'reverse')
 set(h,'FontSize',[18]);
 xlabel('Step Size')
 ylabel('Max Error')
-legend('Implicit Euler','Trapezoidal','Location','northeast')
+
+%Add lines making clear the slope of the convergences
+hold on
+d=[1,.1,.01,.001, .0001,.00001, .000001];
+baseError=mean([max(TrapError),max(EulerError)]);
+o1Convergence=baseError*d;
+o2Convergence=baseError*d.^2;
+hold on
+plot(d,o1Convergence,'s:g')
+plot(d,o2Convergence,'o:b')
+legend('Implicit Euler','Trapezoidal','O(h) Convergence','O(h^2) Convergence','Location','northeast')
 
