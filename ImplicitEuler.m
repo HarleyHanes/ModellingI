@@ -1,4 +1,4 @@
-%      PROGRAM TRAP_METHOD.M
+%Implicit Euler
 %
   clear all
 % 
@@ -23,19 +23,16 @@
     yTrue= exp(-c*tTrue./(2*m)).*(a1.*cos(nu.*tTrue) + a2.*sin(nu.*tTrue));   % True solution
 
 %% Get Numerical Solutions
-  tStep = [1; .5; .25];    %smallest step size for reasonable runtime:  10^-6
+  tStep = [.25, .125, .125/2];    %smallest step size for reasonable runtime:  10^-6
   for itStep=1:length(tStep)
       dt=tStep(itStep);
       T = tStart:dt:tEnd;
       N = length(T);
     %
     % Create system matrices and vectors
-    %
-
-      A = [0 1; -k/m -c/m];
       %New matrices:
-      AA1 = (eye(2,2) + 0.5*dt*A); %this is [I+0.5kA]
-      AA2 = inv(eye(2,2) - 0.5*dt*A); %this is [I-0.5kA]^(-1)
+      A = [0 1; -k/m -c/m];
+      AA = inv(eye(2,2) - dt*A); %this is [I-kA]^(-1)
       z0 = [y0;y1];
 
     %
@@ -43,7 +40,7 @@
       yEst(:,1) = z0; %z((pos,vel),time) I think
       for j=2:N %number of time points
          t = T(j); %current time
-         yEst(:,j) = AA2*AA1*yEst(:,j-1);                              % Approximate solution - NEW
+         yEst(:,j) = AA*yEst(:,j-1);                              % Approximate solution - NEW
       end
       %Save Results to structure
       resultStruct.y=yEst;
@@ -78,7 +75,7 @@
     p=plot(T,Displacement);
     set(p,'LineStyle',LineStyle(isol+1))
     set(p,'Color',LineColor(isol+1))
-    legendList{end+1}=sprintf('h=%.2f',sol.dt);
+    legendList{end+1}=sprintf('h=%.3f',sol.dt);
   end
     h = gca;
     set(h,'FontSize',[18]);
@@ -86,5 +83,3 @@
   ylabel('Displacement (m)')
   title('Spring Solutions with Trapezoid Method')
   legend(legendList) %removed ,4 from end
-  
-  
