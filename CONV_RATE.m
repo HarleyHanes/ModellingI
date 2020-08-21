@@ -11,7 +11,7 @@ c = 2; %damping
 numberofstepsizes = 5; %how many step sizes to test
 a = 0; %start at 10^a
 b = -6; %end at 10^b (doesn't run in a reasonable time if b=-7)
-Ks = logspace(a,b,numberofstepsizes); %create a vector of step sizes, log-spaced
+Ks = (1/2).^(8+(0:4)); %create a vector of step sizes, log-spaced
 
 y0 = 2; %initial displacement
 y1 = 30; %initial velocity

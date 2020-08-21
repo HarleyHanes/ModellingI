@@ -78,7 +78,7 @@
     p=plot(T,Displacement);
     set(p,'LineStyle',LineStyle(isol+1))
     set(p,'Color',LineColor(isol+1))
-    legendList{end+1}=sprintf('h=%.2f',sol.dt);
+    legendList{end+1}=sprintf('dt=%.2f',sol.dt);
   end
     h = gca;
     set(h,'FontSize',[18]);
