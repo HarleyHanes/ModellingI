@@ -81,5 +81,5 @@
     set(h,'FontSize',[18]);
     xlabel('Time (s)')
   ylabel('Displacement (m)')
-  title('Spring Solutions with Trapezoid Method')
+  title('Spring Solutions with Implicit Euler')
   legend(legendList) %removed ,4 from end
