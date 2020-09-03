@@ -3,6 +3,7 @@
 %% Master Control
 %Determine Problem Set
 ProblemSet='1a'; %1a, 1b1, lb2, or 2
+Confidence=.95;
 
 %Build structure
 
@@ -36,27 +37,58 @@ else
         error('Problem Set not recognized')
     end
 end
+Data.n=size(Data.x,1);
 
 %% Estimate Parameters
-%Determine Model
+%Determine Model Functions
 switch ProblemSet
     case '1a'
-        fModel=@(x,Coeff)(Coeff.*x);
+        fModel=@(x,Coeff)sum(Coeff.*x,2);
     case '1b1'
-        fModel=@(x,Coeff)(Coeff.*x);
+        fModel=@(x,Coeff)sum(Coeff.*x,2);
     case '1b2'
-        fModel=@(x,Coeff)(Coeff.*x);
+        fModel=@(x,Coeff)sum(Coeff.*x,2);
     case '2'
-        fmodel=@(Coeff)(ode45(@(y)(springODE(y,Coeff)),Data.x,[0,2]));
+        fModel=@(x,Coeff)(ode45(@(y)(springODE(y,Coeff)),x,[0,2]));
 end
+%Estimate Parameters
+X=Data.x;
+Coeff=((X'*X)\(X'*Data.y))';
+yEst=fModel(Data.x,Coeff);
+%Coeff=Data.y\X
 
 %% Calculate Residuals
+Residual=Data.y-yEst;
 
 
 %% Get Confidence Intervals
+n=Data.n;
+yBar=mean(yEst);
+yS=1/(n-1)*sum(Residual.^2);
+
+%Get t-values
+    % 95% CI
+    tUpper=tinv(1-.05/2,n-1);
+    tLower=tinv(.05/2,n-1);
+    tInt=[tLower,tUpper];
+    %2std CI- 
+    tUpper=tinv(1-.02275,n-1); %NOT SURE THIS RIGHT. .97725 is half CI for 2std normal
+    tLower=tinv(.02275,n-1);
+    tInt(2,:)=[tLower,tUpper];
+
+%yBar Confidence Intervals
+yBarInterval=yBar+tInt*yS/sqrt(n);
+
+%yS Confidence Inrevals
+
+
 
 %% Plot Results
 %Plot Residuals
+plot(1:length(Residual),Residual,'*')
+ylabel('$|\hat{y}-y|$','Interpreter','Latex')
+xlabel('Observation')
+
 
 %Plot Model Result
 if strcmpi(ProblemSet,'2')
