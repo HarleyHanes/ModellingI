@@ -3,7 +3,7 @@ clear; close all;
 set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %% Master Control
 %Determine Problem Set
-ProblemSet='2'; %1a, 1b1, lb2, or 2
+ProblemSet='1a'; %1a, 1b1, lb2, or 2
 Confidence=.95;
 
 %Build structure
@@ -60,6 +60,17 @@ if strcmpi(ProblemSet,'2')
 else
     X=Data.x;
     Coeff=((X'*X)\(X'*Data.y))';
+end
+fprintf('\nModel Coeffecients Found!')
+switch ProblemSet
+    case '1a'
+        fprintf('\nbeta0=%.2f, beta1=%.2f,\nbeta2=%.2f, beta3=%.2f\n',Coeff)
+    case '1b2'
+        fprintf('\nbeta0=%.2f, beta1=%.2f',Coeff)
+    case '1b1'
+        fprintf('\nbeta0=%.2f',Coeff)
+    case '2'
+        fprintf('\nC=%.2f, K=%.2f',Coeff)
 end
 yEst=fModel(Data.x,Coeff);
 %Coeff=Data.y\X

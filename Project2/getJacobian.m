@@ -14,7 +14,7 @@ nPOIs=length(POIs);
 baseQuants = evalFcn(POIs);
 
 nQuants = length(baseQuants);
-raw=1
+raw=1;
 
 %%
 for i = nPOIs:-1:1
