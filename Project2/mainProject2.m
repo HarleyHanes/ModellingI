@@ -1,5 +1,6 @@
 %Project2-main
-
+clear; close all;
+set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %% Master Control
 %Determine Problem Set
 ProblemSet='1a'; %1a, 1b1, lb2, or 2
@@ -49,11 +50,17 @@ switch ProblemSet
     case '1b2'
         fModel=@(x,Coeff)sum(Coeff.*x,2);
     case '2'
-        fModel=@(x,Coeff)(ode45(@(y)(springODE(y,Coeff)),x,[0,2]));
+        fModel=@(tspan,Coeff)springODE(Coeff,tspan);
 end
 %Estimate Parameters
-X=Data.x;
-Coeff=((X'*X)\(X'*Data.y))';
+if strcmpi(ProblemSet,'2')
+   Coeff0=[1,1];
+   lsqFunc=@(Coeff)fModel(Data.x,Coeff)-Data.y;
+   Coeff=lsqnonlin(lsqFunc,Coeff0);
+else
+    X=Data.x;
+    Coeff=((X'*X)\(X'*Data.y))';
+end
 yEst=fModel(Data.x,Coeff);
 %Coeff=Data.y\X
 
@@ -64,33 +71,47 @@ Residual=Data.y-yEst;
 %% Get Confidence Intervals
 n=Data.n;
 yBar=mean(yEst);
-yS=1/(n-1)*sum(Residual.^2);
+yS=sqrt(1/(n-1)*Residual'*Residual);
 
 %Get t-values
     % 95% CI
     tUpper=tinv(1-.05/2,n-1);
     tLower=tinv(.05/2,n-1);
     tInt=[tLower,tUpper];
-    %2std CI- 
+    %2std CI
     tUpper=tinv(1-.02275,n-1); %NOT SURE THIS RIGHT. .97725 is half CI for 2std normal
     tLower=tinv(.02275,n-1);
     tInt(2,:)=[tLower,tUpper];
 
-%yBar Confidence Intervals
-yBarInterval=yBar+tInt*yS/sqrt(n);
-
-%yS Confidence Inrevals
-
-
+if strcmpi(ProblemSet,'2') %Nonlin Formula
+    Jac=CalculateJacobian;
+    qCov=yS^2*(Jac'*Jac)^(-1);
+else %Lin Formula
+    qCov=yS^2*(X'*X)^(-1);
+end
+qConfidence=Coeff+tInt.*sqrt(diag(qCov));
 
 %% Plot Results
 %Plot Residuals
-plot(1:length(Residual),Residual,'*')
-ylabel('$|\hat{y}-y|$','Interpreter','Latex')
-xlabel('Observation')
+figure(1)
+if strcmpi(ProblemSet,'2')
+    plot(Data.x,Residual,'*')
+    xlabel('Time')
+else
+    plot(1:length(Residual),Residual,'*')
+    xlabel('Observation')
+    axis([1 length(Residual), -1.1*max(abs(Residual)) 1.1*max(abs(Residual))])
+end
+ylabel('$\hat{y}-y$','Interpreter','Latex')
 
 
 %Plot Model Result
 if strcmpi(ProblemSet,'2')
-    
+    figure(2)
+    plot(Data.x,Data.y,'or')
+    hold on
+    plot(Data.x,fModel(Data.x,Coeff),'-b')
+    legend('Data',sprintf('Spring Model (C=%.2f,K=%.2f)',Coeff(1),Coeff(2)))
+    xlabel('Time')
+    ylabel('Displacement')
 end
