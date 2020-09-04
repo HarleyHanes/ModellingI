@@ -3,7 +3,7 @@ clear; close all;
 set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %% Master Control
 %Determine Problem Set
-ProblemSet='1a'; %1a, 1b1, lb2, or 2
+ProblemSet='2'; %1a, 1b1, lb2, or 2
 Confidence=.95;
 
 %Build structure
@@ -55,8 +55,8 @@ end
 %Estimate Parameters
 if strcmpi(ProblemSet,'2')
    Coeff0=[1,1];
-   lsqFunc=@(Coeff)fModel(Data.x,Coeff)-Data.y;
-   Coeff=lsqnonlin(lsqFunc,Coeff0);
+   residualSumSquaresFnc=@(Coeff)sum((fModel(Data.x,Coeff)-Data.y).^2);
+   Coeff=fminsearch(residualSumSquaresFnc,Coeff0);
 else
     X=Data.x;
     Coeff=((X'*X)\(X'*Data.y))';
@@ -84,12 +84,13 @@ yS=sqrt(1/(n-1)*Residual'*Residual);
     tInt(2,:)=[tLower,tUpper];
 
 if strcmpi(ProblemSet,'2') %Nonlin Formula
-    Jac=CalculateJacobian;
+    Jac=getJacobian(@(Coeff)fModel(Data.x,Coeff),Coeff);
     qCov=yS^2*(Jac'*Jac)^(-1);
 else %Lin Formula
     qCov=yS^2*(X'*X)^(-1);
 end
-qConfidence=Coeff+tInt.*sqrt(diag(qCov));
+q95Confidence=Coeff'+(tInt(1,:).*sqrt(diag(qCov)))
+q2stdConfidence=Coeff'+(tInt(2,:).*sqrt(diag(qCov)))
 
 %% Plot Results
 %Plot Residuals
