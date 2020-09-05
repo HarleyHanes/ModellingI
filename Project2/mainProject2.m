@@ -108,12 +108,20 @@ q2stdConfidence=Coeff'+(tInt(2,:).*sqrt(diag(qCov)))
 figure(1)
 if strcmpi(ProblemSet,'2')
     plot(Data.x,Residual,'*')
+    hold on
+    plot(Data.x,mean(Residual)*ones(size(Data.x)),'-')
+    plot(Data.x,2*[yS; -yS].*ones(2,length(Data.x)),'--b')
     xlabel('Time')
 else
     plot(1:length(Residual),Residual,'*')
+    hold on
+    plot(1:length(Residual),mean(Residual)*ones(size(Data.x)),'-')
+    plot(1:length(Residual),2*[yS; -yS].*ones(2,length(Residual)),'--b')
     xlabel('Observation')
     axis([1 length(Residual), -1.1*max(abs(Residual)) 1.1*max(abs(Residual))])
 end
+    legend('Residuals',sprintf('Mean Residual=%.2e',mean(Residual)),...
+        sprintf('.95 Confidence, s=%.2f',yS))
 ylabel('$\hat{y}-y$','Interpreter','Latex')
 
 
