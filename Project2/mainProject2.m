@@ -3,7 +3,7 @@ clear; close all;
 set(0,'DefaultAxesFontSize',18,'defaultlinelinewidth',2);set(gca,'FontSize',18);close(gcf);
 %% Master Control
 %Determine Problem Set
-ProblemSet='2'; %1a, 1b1, lb2, or 2
+ProblemSet='1a'; %1a, 1b1, lb2, or 2
 Confidence=.95;
 
 %Build structure
@@ -31,9 +31,9 @@ else
             1 10 68 8 12];
     if strcmpi(ProblemSet,'1a')
     elseif strcmpi(ProblemSet,'1b1')
-        Data.x=Data.x(:,1);
+        Data.x=Data.x(:,2);
     elseif strcmpi(ProblemSet,'1b2')
-        Data.x=Data.x(:,1:2);
+        Data.x=Data.x(:,1:3);
     else 
         error('Problem Set not recognized')
     end
@@ -97,13 +97,11 @@ if strcmpi(ProblemSet,'2') %Nonlin Formula
     chisq = (Jac'*Jac)^(-1);
     qCov=yS^2*(Jac'*Jac)^(-1);
     del = sqrt([chisq(1,1) chisq(2,2)])';
-    ci95 = [Coeff' + crit(1)*yS*del Coeff' + crit(2)*yS*del]
-    ci2sig = Coeff' + [-2 2]*yS
 else %Lin Formula
     qCov=yS^2*(X'*X)^(-1);
-    ci95 = Coeff' + crit*yS
-    ci2sig = Coeff' + [-2 2]*yS
 end
+    ci95 = Coeff' + crit.*diag(qCov)
+    ci2sig = Coeff' + [-2 2].*diag(qCov)
   
 
 % q95Confidence=Coeff'+(tInt(1,:).*sqrt(diag(qCov)))
@@ -118,7 +116,6 @@ if strcmpi(ProblemSet,'2')
     plot(Data.x,mean(Residual)*ones(size(Data.x)),'-')
     plot(Data.x,2*[yS; -yS].*ones(2,length(Data.x)),'--b')
     xlabel('Time')
-    print -depsc Res2
 else
     plot(1:length(Residual),Residual,'*')
     hold on
@@ -126,7 +123,6 @@ else
     plot(1:length(Residual),2*[yS; -yS].*ones(2,length(Residual)),'--b')
     xlabel('Observation')
     axis([1 length(Residual), -1.5*max(abs(Residual)) 1.5*max(abs(Residual))])
-    print -depsc Res1
 end
     legend('Residuals',sprintf('Mean Residual=%.2e',mean(Residual)),...
         sprintf('.95 Confidence, s=%.2f',yS))
@@ -142,7 +138,6 @@ if strcmpi(ProblemSet,'2')
     legend('Data',sprintf('Spring Model (C=%.2f,K=%.2f)',Coeff(1),Coeff(2)))
     xlabel('Time')
     ylabel('Displacement')
-    print -depsc Fit2
 end
 
 %% Analytic Jacobian
@@ -164,7 +159,7 @@ for i = 1:n
 end
 
 Jac_analytic = [dydc_maple dydk_maple];
-max(abs(Jac- Jac_analytic))
+approxJacError=max(abs(Jac- Jac_analytic))
 
 chisq_a = (Jac_analytic'*Jac_analytic)^(-1); 
 
