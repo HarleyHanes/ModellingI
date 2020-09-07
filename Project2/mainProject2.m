@@ -31,7 +31,7 @@ else
             1 10 68 8 12];
     if strcmpi(ProblemSet,'1a')
     elseif strcmpi(ProblemSet,'1b1')
-        Data.x=Data.x(:,2);
+        Data.x=Data.x(:,1:2);
     elseif strcmpi(ProblemSet,'1b2')
         Data.x=Data.x(:,1:3);
     else 
@@ -64,11 +64,11 @@ end
 fprintf('\nModel Coeffecients Found!')
 switch ProblemSet
     case '1a'
-        fprintf('\nbeta0=%.2f, beta1=%.2f,\nbeta2=%.2f, beta3=%.2f\n',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f,\nbeta2=%.2f, beta3=%.2f, beta4=%.2f\n',Coeff)
     case '1b2'
-        fprintf('\nbeta0=%.2f, beta1=%.2f',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f, beta2=%.2f',Coeff)
     case '1b1'
-        fprintf('\nbeta0=%.2f',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f',Coeff)
     case '2'
         fprintf('\nC=%.2f, K=%.2f',Coeff)
 end
@@ -113,19 +113,22 @@ figure(1)
 if strcmpi(ProblemSet,'2')
     plot(Data.x,Residual,'*')
     hold on
+    plot(Data.x,2*(yS).*ones(1,length(Data.x)),'--b')
     plot(Data.x,mean(Residual)*ones(size(Data.x)),'-')
-    plot(Data.x,2*[yS; -yS].*ones(2,length(Data.x)),'--b')
+    plot(Data.x,2*(-yS).*ones(1,length(Data.x)),'--b')
     xlabel('Time')
 else
     plot(1:length(Residual),Residual,'*')
     hold on
-    plot(1:length(Residual),mean(Residual)*ones(size(Data.x)),'-')
-    plot(1:length(Residual),2*[yS; -yS].*ones(2,length(Residual)),'--b')
+    plot(1:length(Residual),2*(-yS).*ones(1,length(Residual)),'--b')
+    plot(1:length(Residual),mean(Residual)*ones(size(Data.x)),'-r')
+    plot(1:length(Residual),2*yS.*ones(1,length(Residual)),'--b')
     xlabel('Observation')
-    axis([1 length(Residual), -1.5*max(abs(Residual)) 1.5*max(abs(Residual))])
+    axis([1 length(Residual), -2.1*yS 2.1*yS])
 end
-    legend('Residuals',sprintf('Mean Residual=%.2e',mean(Residual)),...
-        sprintf('.95 Confidence, s=%.2f',yS))
+legend('Residuals',...
+        sprintf('.95 Confidence, s=%.2f',yS),sprintf('Mean Residual=%.2e',mean(Residual)))
+
 ylabel('$\hat{y}-y$','Interpreter','Latex')
 
 
