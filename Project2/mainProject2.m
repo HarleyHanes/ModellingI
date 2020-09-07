@@ -16,24 +16,24 @@ if strcmpi(ProblemSet,'2')
     clear('D')
 else
     Data.y=[78.5 74.3 104.3 87.6 95.9 109.2 102.7 72.5 93.1 115.9 83.8 113.3 109.4]';
-    Data.x=[7 26 6 60;
-            1 29 15 52;
-            11 56 8 20;
-            11 31 8 47;
-            7 52 6 33;
-            11 55 9 22;
-            3 71 17 6;
-            1 31 22 44;
-            2 54 18 22;
-            21 47 4 26;
-            1 40 23 34;
-            11 66 9 12;
-            10 68 8 12];
+    Data.x=[1 7 26 6 60;
+            1 1 29 15 52;
+            1 11 56 8 20;
+            1 11 31 8 47;
+            1 7 52 6 33;
+            1 11 55 9 22;
+            1 3 71 17 6;
+            1 1 31 22 44;
+            1 2 54 18 22;
+            1 21 47 4 26;
+            1 1 40 23 34;
+            1 11 66 9 12;
+            1 10 68 8 12];
     if strcmpi(ProblemSet,'1a')
     elseif strcmpi(ProblemSet,'1b1')
-        Data.x=Data.x(:,1);
-    elseif strcmpi(ProblemSet,'1b2')
         Data.x=Data.x(:,1:2);
+    elseif strcmpi(ProblemSet,'1b2')
+        Data.x=Data.x(:,1:3);
     else 
         error('Problem Set not recognized')
     end
@@ -64,11 +64,11 @@ end
 fprintf('\nModel Coeffecients Found!')
 switch ProblemSet
     case '1a'
-        fprintf('\nbeta0=%.2f, beta1=%.2f,\nbeta2=%.2f, beta3=%.2f\n',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f,\nbeta2=%.2f, beta3=%.2f, beta4=%.2f\n',Coeff)
     case '1b2'
-        fprintf('\nbeta0=%.2f, beta1=%.2f',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f, beta2=%.2f',Coeff)
     case '1b1'
-        fprintf('\nbeta0=%.2f',Coeff)
+        fprintf('\nbeta0=%.2f, beta1=%.2f',Coeff)
     case '2'
         fprintf('\nC=%.2f, K=%.2f',Coeff)
 end
@@ -90,7 +90,7 @@ yS=sqrt(1/(n-1)*Residual'*Residual);
     tLower=tinv(.05/2,n-1);
     tInt=[tLower,tUpper];
     %2std CI
-    tUpper=tinv(1-.02275,n-1); %NOT SURE THIS RIGHT. .97725 is half CI for 2std normal
+    tUpper=tinv(1-.02275,n-1);
     tLower=tinv(.02275,n-1);
     tInt(2,:)=[tLower,tUpper];
 
@@ -109,19 +109,22 @@ figure(1)
 if strcmpi(ProblemSet,'2')
     plot(Data.x,Residual,'*')
     hold on
+    plot(Data.x,2*(yS).*ones(1,length(Data.x)),'--b')
     plot(Data.x,mean(Residual)*ones(size(Data.x)),'-')
-    plot(Data.x,2*[yS; -yS].*ones(2,length(Data.x)),'--b')
+    plot(Data.x,2*(-yS).*ones(1,length(Data.x)),'--b')
     xlabel('Time')
 else
     plot(1:length(Residual),Residual,'*')
     hold on
-    plot(1:length(Residual),mean(Residual)*ones(size(Data.x)),'-')
-    plot(1:length(Residual),2*[yS; -yS].*ones(2,length(Residual)),'--b')
+    plot(1:length(Residual),2*(-yS).*ones(1,length(Residual)),'--b')
+    plot(1:length(Residual),mean(Residual)*ones(size(Data.x)),'-r')
+    plot(1:length(Residual),2*yS.*ones(1,length(Residual)),'--b')
     xlabel('Observation')
-    axis([1 length(Residual), -1.1*max(abs(Residual)) 1.1*max(abs(Residual))])
+    axis([1 length(Residual), -2.1*yS 2.1*yS])
 end
-    legend('Residuals',sprintf('Mean Residual=%.2e',mean(Residual)),...
-        sprintf('.95 Confidence, s=%.2f',yS))
+legend('Residuals',...
+        sprintf('.95 Confidence, s=%.2f',yS),sprintf('Mean Residual=%.2e',mean(Residual)))
+
 ylabel('$\hat{y}-y$','Interpreter','Latex')
 
 
