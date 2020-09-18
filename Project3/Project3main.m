@@ -13,7 +13,7 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
     
 %% Problem 3
     %Set up Simulation Parameters
-            numSpaceSteps=[11 51 501];
+            numSpaceSteps=[5 10 20];
             numTimeSteps=20;
     %Initialize Plot
             figure
@@ -24,7 +24,7 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
             xVec=linspace(0,2,numSpaceSteps(ixStep))';
             tVec=linspace(0,1,numTimeSteps)';
         %Get Numerical Solutions
-            uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.07);
+            uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.07,[0 0]);
         %Get Error
             %uSol_Analytic=
         %Plot Numeric Solutions

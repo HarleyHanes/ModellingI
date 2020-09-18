@@ -1,6 +1,6 @@
-function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
-%ForwardTime1DCenteredSpace Numerical PDE integrator for 1D 
-%diffusion with out forcing and with 0 boundary conditions
+function [uSol] = BackwardEuler1DFiniteElement(x,t,uInit,D,bounds)
+%ForwardTime1DFiniteElement Numerical PDE integrator for 1D 
+%diffusion with forcing and variable boundary conditions
 %   Uses backward euler in time and centered difference in space
 %   D- diffusion term
 
@@ -25,11 +25,16 @@ function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
         if sum(abs((t(2:end)-t(1:end-1))-deltaT))>10^(-12)
             error('Spacing in x is not constant')
         end
-    %A- Centered difference linear operator
-        lambda=D*deltaT/deltaX^2;
-        d1=1+lambda*2*ones(1,length(x));
-        d2=-lambda*ones(1,length(x)-1);
-    A=diag(d1,0)+diag(d2,1)+diag(d2,-1);
+    %M
+        mMainDiag=2/3*ones(1,length(x));
+        mOffDiag=ones(1,length(x)-1)/6;
+        M=deltaX*(diag(mMainDiag,0)+diag(mOffDiag,-1)+diag(mOffDiag,1));
+    %K
+        kMainDiag=2*ones(1,length(x));
+        kOffDiag=-ones(1,length(x)-1);
+        K=D/deltaX*(diag(kMainDiag,0)+diag(kOffDiag,-1)+diag(kOffDiag,1));
+    %A-Linear Finite Element operator
+    	A=eye(length(x))+deltaT*M\K;
     
 %Iterate over time
 for it=1:length(t)-1
@@ -37,4 +42,6 @@ for it=1:length(t)-1
 end
 uSol=[bounds(1)*ones(1,length(t));uSol;bounds(2)*ones(1,length(t))];
 end
+
+
 
