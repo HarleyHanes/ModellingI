@@ -1,8 +1,13 @@
-function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
+function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds,varargin)
 %ForwardTime1DCenteredSpace Numerical PDE integrator for 1D 
 %diffusion with out forcing and with 0 boundary conditions
 %   Uses backward euler in time and centered difference in space
 %   D- diffusion term
+if nargin>6
+    error('Too many input arguments for BackwardEuler1DCenteredSpace')
+elseif nargin==6
+    sourceFunc=varargin{1};
+end
 
 
 %Check Inputs
@@ -10,8 +15,13 @@ function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
 %Define Method Varaibles
     %x- Recannotate to remove boundary values
     x=x(2:end-1);
+        %Make sure x is a column vec
+        if size(x,1)==1
+            x=x';
+            sprintf('Transitioned x from row to column vector')
+        end
     %uSol- Solution matrix where each column is a solution at ti
-    uSol=NaN(length(x),length(t));
+    uSol=NaN(length(x),1);
         uSol(:,1)=uInit(2:end-1);
     %deltaX
     deltaX=x(2)-x(1);
@@ -22,7 +32,7 @@ function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
     %deltaT
     deltaT=t(2)-t(1);
         %Confirm constant spacing in t
-        if sum(abs((t(2:end)-t(1:end-1))-deltaT))>10^(-12)
+        if max(abs((t(2:end)-t(1:end-1))-deltaT))>10^(-14)
             error('Spacing in x is not constant')
         end
     %A- Centered difference linear operator
@@ -32,9 +42,15 @@ function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds)
     A=diag(d1,0)+diag(d2,1)+diag(d2,-1);
     
 %Iterate over time
-for it=1:length(t)-1
-    uSol(:,it+1)=A\uSol(:,it);
+if nargin==6
+    for it=1:length(t)-1
+        uSol=A\(uSol+deltaT*sourceFunc(x,t(it+1)));
+    end
+else
+    for it=1:length(t)-1
+        uSol=A\uSol;
+    end
 end
-uSol=[bounds(1)*ones(1,length(t));uSol;bounds(2)*ones(1,length(t))];
+uSol=[bounds(1);uSol;bounds(2)];
 end
 
