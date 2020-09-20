@@ -26,7 +26,7 @@ end
     %deltaX
     deltaX=x(2)-x(1);
         %Confirm constant spacing in x
-        if sum(abs((x(2:end)-x(1:end-1))-deltaX))>10^(-12)
+        if max(abs((x(2:end)-x(1:end-1))-deltaX))>10^(-12)
             error('Spacing in x is not constant')
         end
     %deltaT

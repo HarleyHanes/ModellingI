@@ -3,14 +3,40 @@ clc; clear; close all;
 set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
 
 %% Problem 1
+    clear; close all
     %Assign Data
-        Data.rho=[.021 .037 .058 .067 .103];
-        Data.u=[14.3 10.3 7.2 4.9 2.7];
-    %Plot Data
-        plot(Data.rho,Data.u)
+        Data.rho=[.021 .037 .058 .067 .103]';
+        Data.u=[14.3 10.3 7.2 4.9 2.7]';
+    %Define function for u(rho)
+        uFuncLinear=@(rho,Coeff)(Coeff(1)*(1-rho/Coeff(2)));
+        %uFuncQuad=@(rho,Coeff)(Coeff(1)*(1-rho.^2/Coeff(2)));
+        %uFuncRecip=@(rho,Coeff)(Coeff(1)*(1+1./(Coeff(2)*rho)));
+        uFuncLog=@(rho,Coeff)(Coeff(1)*(1+log(rho)/(Coeff(2))));
+    %Determine Best fit with fminsearch
+        %Define Residual Func
+        residualSumSquaresLinear=@(Coeff)sum((uFuncLinear(Data.rho,Coeff)-Data.u).^2);
+        %residualSumSquaresQuad=@(Coeff)sum((uFuncQuad(Data.rho,Coeff)-Data.u).^2);
+        %residualSumSquaresRecip=@(Coeff)sum((uFuncRecip(Data.rho,Coeff)-Data.u).^2);
+        residualSumSquaresLog=@(Coeff)sum((uFuncLog(Data.rho,Coeff)-Data.u).^2);
+        %Solve
+        CoeffLinear=fminsearch(residualSumSquaresLinear,[20 1]);
+        %CoeffQuad=fminsearch(residualSumSquaresQuad,[20 1]);
+        %CoeffRecip=fminsearch(residualSumSquaresRecip,[20 1]);
+        CoeffLog=fminsearch(residualSumSquaresLog,[20 1]);
+    %Plot Data and model
+        plot(Data.rho,Data.u,'-k')
+        hold on
+            rhoIter=linspace(.02,.11,50);
+        plot(rhoIter,uFuncLinear(rhoIter,CoeffLinear),'--b');
+        %plot(rhoIter,uFuncQuad(rhoIter,CoeffQuad));
+        %plot(rhoIter,uFuncRecip(rhoIter,CoeffRecip));
+        plot(rhoIter,uFuncLog(rhoIter,CoeffLog),'-.g');
+        legend('Data',sprintf('$u(\\rho)=%.2g(1-\\frac{\\rho}{%.2g})$, RSS=%.2g',CoeffLinear,residualSumSquaresLinear(CoeffLinear)),...
+            ...%sprintf('$%.2g(1-\\frac{\\rho\\textsuperscript{2}}{%.2g})$',CoeffQuad),...%sprintf('$%.2g(1-\\frac{1}{%.2g\\rho})$',CoeffRecip),...
+            sprintf('$u(\\rho)=%.2g(1-\\frac{log(\\rho)}{%.2g})$, RSS=%.2g',CoeffLog,residualSumSquaresLog(CoeffLog)),...
+            'Interpreter','LaTex')
         xlabel('$\rho$ (cars/minute)','Interpreter','LaTex')
         ylabel('$u$ (m/s)','Interpreter','LaTex')
-    
 %% Problem 3- Simulation Plot
     %Set up Simulation Parameters
             numSpacePoints=[11 21 31];
@@ -139,39 +165,52 @@ clear;
 %Spatial Convergence
 dT=10^(-5);
 dXsteps=(10^(-2).*[1 1/2 1/4 1/8 1/16]);
+%Get Accurate Answer
+            xVec=(0:10^(-3)/16:2)';
+            tVec=(0:dT:1)';
+            uSol_Accurate(:,1)=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
 errorSpace=NaN(length(dXsteps),3);
 errorSpace(:,1)=dXsteps;
 for iStep=1:length(dXsteps)
         %Calculate Simulation Variables
             xVec=(0:dXsteps(iStep):2)';
             tVec=(0:dT:1)';
-        %Get Analytic Solution
         %Get Numerical Solutions
             uSol_Numeric(:,1)=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
         %Get Error
-            errorSpace(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
+            %Extract Indices from Accurate answer
+            stepConversion=(length(uSol_Accurate)-1)/(length(xVec)-1);
+            if stepConversion~=round(stepConversion)
+                error('Accurate and Test stepsizes dont match')
+            end
+            accurateConverted=uSol_Accurate(1:125:end);
+            %Calculate Error
+            errorSpace(2,iStep)=max(abs(uSol_Numeric-accurateConverted));
         %Caculate Relative Change in error
         if iStep~=1
             errorSpace(3,iStep)=errorSpace(2,iStep-1)/errorSpace(2,iStep);
         end
 end
-%Temporal Convergence
+%% Temporal Convergence
     %Get Spatial and Time Steps
-        dX=10^(-5);
-            xVec=linspace(0,1,dT)';
+        dX=10^(-3);
+            xVec=linspace(0,1,dX)';
         dTsteps=10^(-2).*[1 1/2 1/4 1/8 1/16];
     %Setup Error Table
         errorTime=NaN(length(dTsteps),3);
         errorTime(:,1)=dTsteps;
-    %Get Analytic Solution
-    %Get Numeric Solutions
+%Get Accurate Answer
+            tVec=(0:.00001:2)';
+            xVec=(0:dX:1)';
+            uSol_Accurate(:,1)=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
+    %Get Test Solutions
     for iStep=1:length(numSpacePoints)
             %Calculate Simulation Variables
                 tVec=linspace(0,1,dTsteps(iStep))';
             %Get Numerical Solutions
                 uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
             %Get Error
-                errorTime(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
+                errorTime(2,iStep)=max(abs(uSol_Numeric-uSol_Accurate));
             %Caculate Relative Change in error
             if iStep~=1
                 errorTime(3,iStep)=errorTime(2,iStep-1)/errorTime(2,iStep);
