@@ -59,3 +59,9 @@ latextable(matrix, 'Horiz', ColNames, 'Vert', RowNames,...
     'name', fname, 'format', '%.2g');
 
 end
+function Names=basicNames(n,head)
+Names=cell(n,1);
+for i=1:n
+    Names{i}=sprintf('%s %i',head,i);
+end
+end

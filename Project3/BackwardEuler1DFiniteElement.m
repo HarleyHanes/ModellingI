@@ -1,8 +1,13 @@
-function [uSol] = BackwardEuler1DFiniteElement(x,t,uInit,D,bounds)
+function [uSol] = BackwardEuler1DFiniteElement(x,t,uInit,D,bounds,varargin)
 %ForwardTime1DFiniteElement Numerical PDE integrator for 1D 
 %diffusion with forcing and variable boundary conditions
 %   Uses backward euler in time and centered difference in space
 %   D- diffusion term
+if nargin>6
+    error('Too many input arguments for BackwardEuler1DCenteredSpace')
+elseif nargin==6
+    sourceFunc=varargin{1};
+end
 
 
 %Check Inputs
@@ -34,8 +39,8 @@ function [uSol] = BackwardEuler1DFiniteElement(x,t,uInit,D,bounds)
         kOffDiag=-ones(1,length(x)-1);
         K=D/deltaX*(diag(kMainDiag,0)+diag(kOffDiag,-1)+diag(kOffDiag,1));
     %A-Linear Finite Element operator
-    	A=eye(length(x))+deltaT*M\K;
-    
+    	A=eye(length(x))+deltaT*(M\K);
+   % keyboard
 %Iterate over time
 for it=1:length(t)-1
     uSol(:,it+1)=A\uSol(:,it);

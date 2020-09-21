@@ -37,82 +37,9 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
             'Interpreter','LaTex')
         xlabel('$\rho$ (cars/minute)','Interpreter','LaTex')
         ylabel('$u$ (m/s)','Interpreter','LaTex')
-%% Problem 3- Simulation Plot
-    %Set up Simulation Parameters
-            numSpacePoints=[11 21 31];
-            numTimeSteps=[6 11 21];
-    %Initialize Plot
-            figure
-            hold on
-    %Loop over Step Values for plotting
-    for iStep=1:length(numSpacePoints)
-        %Calculate Simulation Variables
-            xVec=linspace(0,2,numSpacePoints(iStep))';
-            tVec=linspace(0,1,numTimeSteps(iStep))';
-        %Get Numerical Solutions
-            uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
-        %Plot Numeric Solutions
-            plot(xVec,uSol_Numeric(:,end))
-            clear('xVec','tVec','uSol_numeric')
-    end
-    %Plot Analytic Solutions
-    %Format Plot
-        title('$\frac{\partial u}{\partial t}=\alpha\frac{\partial^2 u}{\partial x^2}$','Interpreter','LaTex')
-        xlabel('x','Interpreter','LaTex')
-        ylabel('u(x,1)','Interpreter','Latex')
-        %Make Legend,
-        legendCell=cell(1,length(numSpacePoints)); %Stores legend strings
-        for  iLegend=1:length(numSpacePoints)
-            h=2/(numSpacePoints(iLegend)-1);
-            k=1/(numTimeSteps(iLegend)-1);
-            legendCell{iLegend}=sprintf('$\\hat{u}$ for $h=%.2g$, $k=%.2g$',h,k);
-        end
-        legend(legendCell,'Interpreter','Latex')
-        hold off
-        
-%% Problem 3- Convergence Tables
-clear;
-%Spatial Convergence
-dT=10^(-5);
-dXsteps=(10^(-2).*[1 1/2 1/4 1/8 1/16]);
-errorSpace=NaN(length(dXsteps),3);
-errorSpace(:,1)=dXsteps;
-for iStep=1:length(dXsteps)
-        %Calculate Simulation Variables
-            xVec=(0:dXsteps(iStep):2)';
-            tVec=(0:dT:1)';
-        %Get Analytic Solution
-        %Get Numerical Solutions
-            uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
-        %Get Error
-            errorSpace(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
-        %Caculate Relative Change in error
-        if iStep~=1
-            errorSpace(3,iStep)=errorSpace(2,iStep-1)/errorSpace(2,iStep);
-        end
-end
-%Temporal Convergence
-    %Get Spatial and Time Steps
-        dX=10^(-5);
-            xVec=linspace(0,1,dT)';
-        dTsteps=10^(-2).*[1 1/2 1/4 1/8 1/16];
-    %Setup Error Table
-        errorTime=NaN(length(dTsteps),3);
-        errorTime(:,1)=dTsteps;
-    %Get Analytic Solution
-    %Get Numeric Solutions
-    for iStep=1:length(numSpacePoints)
-            %Calculate Simulation Variables
-                tVec=linspace(0,1,dTsteps(iStep))';
-            %Get Numerical Solutions
-                uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
-            %Get Error
-                errorTime(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
-            %Caculate Relative Change in error
-            if iStep~=1
-                errorTime(3,iStep)=errorTime(2,iStep-1)/errorTime(2,iStep);
-            end
-    end
+%% Problem 3
+%Make Plots and Get Errors
+    [errorTime,errorSpace] = SolveSimpleDiffusion('Finite Differences');
 %Write Tables to LaTex
     %Make Column and table names
         SpaceColNames={'h','Error','$\frac{|E_i|}{|E_{i-1}|}$'};
@@ -125,8 +52,21 @@ end
         
         
         
-        
+
 %% Problem 4
+clear;
+%Make Plots and Get Errors
+    [errorTime,errorSpace] = SolveSimpleDiffusion('Finite Element');
+%Write Tables to LaTex
+    %Make Column and table names
+        SpaceColNames={'h','Error','$\frac{|E_i|}{|E_{i-1}|}$'};
+        SpaceRowNames=cell(0,0);
+    %Space Table
+        matrixToTexTable(errorSpace,SpaceRowNames,SpaceColNames,'filename','P4_SpaceErrorTable')
+    %Time Table
+        matrixToTexTable(errorTime,SpaceRowNames,SpaceColNames,'filename','P4_TimeErrorTable')
+        
+        
 
 %% Problem 5- Simulation Plot
     %Set up Simulation Parameters
@@ -191,7 +131,15 @@ for iStep=1:length(dXsteps)
             errorSpace(3,iStep)=errorSpace(2,iStep-1)/errorSpace(2,iStep);
         end
 end
+
+%Write Tables to LaTex
+    %Make Column and table names
+        SpaceColNames={'h','Error','$\frac{|E_i|}{|E_{i-1}|}$'};
+        SpaceRowNames=cell(0,0);
+    %Space Table
+        matrixToTexTable(errorSpace',SpaceRowNames,SpaceColNames,'filename','P3_SpaceErrorTable')
 %% Temporal Convergence
+clear
     %Get Spatial and Time Steps
         dX=10^(-3);
             xVec=linspace(0,1,dX)';
@@ -200,27 +148,25 @@ end
         errorTime=NaN(length(dTsteps),3);
         errorTime(:,1)=dTsteps;
 %Get Accurate Answer
-            tVec=(0:.00001:2)';
+            tVec=(0:10^(-4)/16:2)';
             xVec=(0:dX:1)';
             uSol_Accurate(:,1)=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
     %Get Test Solutions
-    for iStep=1:length(numSpacePoints)
+    for iStep=1:length(dTsteps)
             %Calculate Simulation Variables
-                tVec=linspace(0,1,dTsteps(iStep))';
+                tVec=0:dTsteps(iStep):1;
             %Get Numerical Solutions
                 uSol_Numeric=BackwardEuler1DCenteredSpace(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
             %Get Error
-                errorTime(2,iStep)=max(abs(uSol_Numeric-uSol_Accurate));
+                errorTime(iStep,2)=max(abs(uSol_Numeric-uSol_Accurate));
             %Caculate Relative Change in error
             if iStep~=1
-                errorTime(3,iStep)=errorTime(2,iStep-1)/errorTime(2,iStep);
+                errorTime(iStep,3)=errorTime(iStep-1,2)/errorTime(iStep,2);
             end
     end
 %Write Tables to LaTex
     %Make Column and table names
-        SpaceColNames={'h','Error','$\frac{|E_i|}{|E_{i-1}|}$'};
-        SpaceRowNames=cell(0,0);
-    %Space Table
-        matrixToTexTable(errorSpace,SpaceRowNames,SpaceColNames,'filename','P3_SpaceErrorTable')
+        TimeColNames={'h','Error','$\frac{|E_i|}{|E_{i-1}|}$'};
+        TimeRowNames=cell(0,0);
     %Time Table
-        matrixToTexTable(errorTime,SpaceRowNames,SpaceColNames,'filename','P3_TimeErrorTable')
+        matrixToTexTable(errorTime,TimeRowNames,TimeColNames,'filename','P3_TimeErrorTable')
