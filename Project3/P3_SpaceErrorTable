@@ -1,0 +1,8 @@
+\begin{tabular}{|c|c|c|c|}
+\hline
+& h & Error & $\frac{|E_i|}{|E_{i-1}|}$ \\
+row  1 & 0.02 & 2.5e-05 & NaN \\
+row  2 & 0.01 & 6.3e-06 & 0.25 \\
+row  3 & 0.005 & 1.6e-06 & 0.25 \\
+\hline
+\end{tabular}

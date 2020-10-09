@@ -1,4 +1,4 @@
-function [uSol] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds,varargin)
+function [uSol,uX1] = BackwardEuler1DCenteredSpace(x,t,uInit,D,bounds,varargin)
 %ForwardTime1DCenteredSpace Numerical PDE integrator for 1D 
 %diffusion with out forcing and with 0 boundary conditions
 %   Uses backward euler in time and centered difference in space
@@ -40,15 +40,20 @@ end
         d1=1+lambda*2*ones(1,length(x));
         d2=-lambda*ones(1,length(x)-1);
     A=diag(d1,0)+diag(d2,1)+diag(d2,-1);
+    Ainv=A^(-1);
     
+    %SPECIFIC TO P5 OF PROJECT 3-Store value at x=1
+    uX1=NaN(1,length(t));
+    uX1(1)=uSol(x==1);
 %Iterate over time
 if nargin==6
     for it=1:length(t)-1
-        uSol=A\(uSol+deltaT*sourceFunc(x,t(it+1)));
+        uSol=Ainv*(uSol+deltaT*sourceFunc(x,t(it+1)));
+        uX1(it+1)=uSol(x==1); %SPECIFIC TO P5 OF PROJECT 3- Store value at x=1
     end
 else
     for it=1:length(t)-1
-        uSol=A\uSol;
+        uSol=Ainv*uSol;
     end
 end
 uSol=[bounds(1);uSol;bounds(2)];

@@ -9,13 +9,16 @@ function [errorTime,errorSpace] = SolveSimpleDiffusion(solverType)
     else
         error('Unrecongized solver type')
     end
+        uSol_Analytic=@(x,t)exp(-.7*(pi/2)^2*t).*sin(pi*x/2);
 %% Simulation Plot
     %Set up Simulation Parameters
-            numSpacePoints=[11 21 31];
-            numTimeSteps=[6 11 21];
+            numSpacePoints=[11 41 161];
+            numTimeSteps=[11 41 161]*4;
     %Initialize Plot
             figure
             hold on
+    %Plot Analytic Solutions
+        plot(0:.05:2,uSol_Analytic(0:.05:2,1),LineSpec(1))
     %Loop over Step Values for plotting
     for iStep=1:length(numSpacePoints)
         %Calculate Simulation Variables
@@ -24,28 +27,29 @@ function [errorTime,errorSpace] = SolveSimpleDiffusion(solverType)
         %Get Numerical Solutions
             uSol_Numeric=SystemSolver(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
         %Plot Numeric Solutions
-            plot(xVec,uSol_Numeric(:,end))
+            plot(xVec,uSol_Numeric(:,end),LineSpec(iStep+1))
             clear('xVec','tVec','uSol_numeric')
     end
-    %Plot Analytic Solutions
     %Format Plot
         title('$\frac{\partial u}{\partial t}=.7\frac{\partial^2 u}{\partial x^2}$','Interpreter','LaTex')
         xlabel('x','Interpreter','LaTex')
         ylabel('u(x,1)','Interpreter','Latex')
         %Make Legend,
-        legendCell=cell(1,length(numSpacePoints)); %Stores legend strings
+        legendCell=cell(1,length(numSpacePoints)+1); %Stores legend strings
+        legendCell{1}='True Solution';
         for  iLegend=1:length(numSpacePoints)
             h=2/(numSpacePoints(iLegend)-1);
             k=1/(numTimeSteps(iLegend)-1);
-            legendCell{iLegend}=sprintf('$\\hat{u}$ for $h=%.2g$, $k=%.2g$',h,k);
+            legendCell{iLegend+1}=sprintf('$\\hat{u}$ for $h=%.2g$, $k=%.2g$',h,k);
         end
         legend(legendCell,'Interpreter','Latex')
         hold off
         
-%% Problem 3- Convergence Tables
+%% Convergence Tables
 %Spatial Convergence
-dT=10^(-4);
-dXsteps=(10^(-2).*[1 1/2 1/4 1/8 1/16]);
+dT=10^(-7);
+dXsteps=[.02 .01 .005];
+%dXsteps=(10^(-2).*[1 1/2 1/4 1/8 1/16]);
 errorSpace=NaN(length(dXsteps),3);
 errorSpace(:,1)=dXsteps;
 for iStep=1:length(dXsteps)
@@ -53,20 +57,20 @@ for iStep=1:length(dXsteps)
             xVec=(0:dXsteps(iStep):2)';
             tVec=(0:dT:1)';
         %Get Analytic Solution
-        %Get Numerical Solutions
+         %Get Numerical Solutions
             uSol_Numeric=SystemSolver(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
         %Get Error
-            errorSpace(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
+            errorSpace(iStep,2)=max(abs(uSol_Numeric-uSol_Analytic(xVec,1)));
         %Caculate Relative Change in error
         if iStep~=1
-            errorSpace(3,iStep)=errorSpace(2,iStep-1)/errorSpace(2,iStep);
+            errorSpace(iStep,3)=errorSpace(iStep,2)/errorSpace(iStep-1,2);
         end
 end
 %Temporal Convergence
     %Get Spatial and Time Steps
-        dX=10^(-4);
-            xVec=linspace(0,1,dX)';
-        dTsteps=10^(-2).*[1 1/2 1/4 1/8 1/16];
+        dX=5*10^(-3);
+            xVec=(0:dX:2)';
+        dTsteps=[.0005 .00025 .000125];
     %Setup Error Table
         errorTime=NaN(length(dTsteps),3);
         errorTime(:,1)=dTsteps;
@@ -74,14 +78,14 @@ end
     %Get Numeric Solutions
     for iStep=1:length(numSpacePoints)
             %Calculate Simulation Variables
-                tVec=linspace(0,1,dTsteps(iStep))';
+                tVec=(0:dTsteps(iStep):1)';
             %Get Numerical Solutions
-                uSol_Numeric=SystemSolver(xVec,tVec,sin(pi*xVec/2),.7,[0 0],0);
+                uSol_Numeric=SystemSolver(xVec,tVec,sin(pi*xVec/2),.7,[0 0]);
             %Get Error
-                errorTime(2,iStep)=max(abs(uSol_Numeric-uSol_Analytic));
+                errorTime(iStep,2)=max(abs(uSol_Numeric-uSol_Analytic(xVec,1)));
             %Caculate Relative Change in error
             if iStep~=1
-                errorTime(3,iStep)=errorTime(2,iStep-1)/errorTime(2,iStep);
+                errorTime(iStep,3)=errorTime(iStep,2)/errorTime(iStep-1,2);
             end
     end
    
