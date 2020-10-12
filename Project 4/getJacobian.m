@@ -24,7 +24,7 @@ end
 jac = NaN(nQuants, nPOIs);
 
 %factor = .001; % get .1% of initial parameters, HARD
-delta_x0 = .0001;
+delta_x0 = .00001;
 
 % fudge number if delta is 0
 %delta_x0(delta_x0==0) = factor;

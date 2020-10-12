@@ -9,7 +9,7 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
         switch modelType
             case 'Insulated'
                 fModel=@(x,coeff)InsulatedRodEquil(x,coeff,dataType);
-                fCov=@(c1,c2,c3,c4)InsulatedRodCovMatrix(c1,c2,c3,c4);
+                fCov=@(c1,c2,c3,c4,c5)InsulatedRodCovMatrix(c1,c2,c3,c4,c5);
             case 'Uninsulated'
                 fModel=@(x,coeff)UninsulatedRodEquil(x,coeff,dataType);
                 fCov=@(c1,c2,c3,c4,c5)UninsulatedRodCovMatrix(c1,c2,c3,c4,c5);
@@ -47,21 +47,27 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
     [coeffOptimal,RSSoptimal,residualsOptimal]=GetOptimalParams(fModel,Data,modelType);
 
 %% Get confidence intervals
+if ~strcmpi(modelType,'Insulated')
     %Get Covariance and S
          [covMat,yS]=fCov(Data.X,fModel,residualsOptimal,coeffOptimal,modelType);
+     %Get t Intervals
+        tInt=[tinv(.025,length(Data.X)-2), tinv(.975,length(Data.X)-2)];
      %Caclulate Confidence intervals
-         coeff95=coeffOptimal' + [-1.97 1.97].*diag(covMat);
-         
+         coeff95=coeffOptimal' + tInt.*diag(sqrt(covMat));
+end
 %% Print Results
     switch modelType
         case 'Insulated'
-            fprintf('\nOptimal Parameters: phi=%.3g\n',coeffOptimal)
+            fprintf('\nOptimal Parameters: phi=%.3g\n ',coeffOptimal)
         case 'Uninsulated'
-            fprintf('\nOptimal Parameters: phi=%.3g, h=%.3g\n',coeffOptimal)
+            fprintf(['\nOptimal Parameters: phi=%.4g, h=%.4g\n'...
+                'Confidence Intervals: [%.4g %.4g],  [%.4g %.4g]\n'...
+                'S=%.4g\n'],...
+                coeffOptimal,coeff95',yS)
         case 'Combined'
-            fprintf(['\nOptimal Parameters: phiAluminum=%.3g, phiCopper=%.3g h=%.3g\n'...
-                'Confidence Intervals: [%.3g %.3g], [%.3g %.3g], [%.3g %.3g]\n'...
-                'S=%.3g\n'],...
+            fprintf(['\nOptimal Parameters: phiAluminum=%.4g, phiCopper=%.4g h=%.4g\n'...
+                'Confidence Intervals: [%.4g %.4g], [%.4g %.4g], [%.4g %.4g]\n'...
+                'S=%.4g\n'],...
                 coeffOptimal,coeff95',yS)
     end
     
