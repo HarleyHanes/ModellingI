@@ -8,6 +8,8 @@ switch ModelType
         Coeff0=[-1.84e+05,19];
     case 'Combined'
         Coeff0=[-99000,-180000,16];
+    case 'Combined (2)'
+        Coeff0=[-99000,16];
 end
 
 %Make Cost function

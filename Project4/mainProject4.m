@@ -3,8 +3,8 @@ clc; clear; close all;
 set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
 
 %% Master control
-    modelType='Uninsulated'; %Insulated vs. Uninsulated vs. Combined
-    dataType='Copper'; %Copper vs. Aluminum vs. Combined
+    modelType='Combined'; %Insulated vs. Uninsulated vs. Combined
+    dataType='Combined'; %Copper vs. Aluminum vs. Combined
     %1) Select Model
         switch modelType
             case 'Insulated'
@@ -14,6 +14,9 @@ set(0,'defaultLineLineWidth',4,'defaultAxesFontSize',20);
                 fModel=@(x,coeff)UninsulatedRodEquil(x,coeff,dataType);
                 fCov=@(c1,c2,c3,c4,c5)UninsulatedRodCovMatrix(c1,c2,c3,c4,c5);
             case 'Combined'
+                fModel=@(x,coeff)CombinedRodEquil(x,coeff);
+                fCov=@(c1,c2,c3,c4,c5)UninsulatedRodCovMatrix(c1,c2,c3,c4,c5);
+            case 'Combined (2)'
                 fModel=@(x,coeff)CombinedRodEquil(x,coeff);
                 fCov=@(c1,c2,c3,c4,c5)UninsulatedRodCovMatrix(c1,c2,c3,c4,c5);
             otherwise
@@ -64,6 +67,11 @@ end
                 'Confidence Intervals: [%.4g %.4g],  [%.4g %.4g]\n'...
                 'S=%.4g\n'],...
                 coeffOptimal,coeff95',yS)
+        case 'Combined (2)'
+            fprintf(['\nOptimal Parameters: phi=%.4g, h=%.4g\n'...
+                'Confidence Intervals: [%.4g %.4g],  [%.4g %.4g]\n'...
+                'S=%.4g\n'],...
+                coeffOptimal,coeff95',yS)
         case 'Combined'
             fprintf(['\nOptimal Parameters: phiAluminum=%.4g, phiCopper=%.4g h=%.4g\n'...
                 'Confidence Intervals: [%.4g %.4g], [%.4g %.4g], [%.4g %.4g]\n'...
@@ -90,9 +98,13 @@ end
             legend(sprintf('$T_s(x)$, $\\Phi=%.3g$, $h=%.3g$',coeffOptimal),'Temperature Data','Interpreter','LaTex')
         case 'Insulated'
             legend(sprintf('$T_s(x)$, $\\Phi=%.3g$',coeffOptimal),'Temperature Data','Interpreter','LaTex')
+        case 'Combined (2)'
+            legend(sprintf('$T_{Al}(x)$, $\\Phi=%.3g$, $h=%.3g$',coeffOptimal),...
+                   sprintf('$T_{Cu}(x)$, $\\Phi=%.3g$, $h=%.3g$',coeffOptimal),...
+                   'Aluminum Data', 'Copper Data','Interpreter','LaTex');
         case 'Combined'
-            legend(sprintf('$T_s(x)$, $\\Phi_{aluminum}=%.3g$, $h=%.3g$',coeffOptimal([1,3])),...
-                   sprintf('$T_s(x)$, $\\Phi_{copper}=%.3g$, $h=%.3g$',coeffOptimal([2,3])),...
+            legend(sprintf('$T_{Al}(x)$, $\\Phi_{aluminum}=%.3g$, $h=%.3g$',coeffOptimal([1,3])),...
+                   sprintf('$T_{Cu}(x)$, $\\Phi_{copper}=%.3g$, $h=%.3g$',coeffOptimal([2,3])),...
                    'Aluminum Data', 'Copper Data','Interpreter','LaTex');
     end
     xlabel('Distance (m)')
@@ -101,7 +113,7 @@ end
     
     %%Residual
     figure('Renderer', 'painters', 'Position', [200 200 750 550])
-    if strcmpi(modelType,'Combined')
+    if strcmpi(modelType,'Combined')||strcmpi(modelType,'Combined (2)')
         plot(Data.X,residualsOptimal(:,1),'bo')
         hold on
         plot(Data.X,residualsOptimal(:,2),'rs')
