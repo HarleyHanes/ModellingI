@@ -19,7 +19,7 @@ legend('G(x)','Interpreter','LaTex')
 title(sprintf('Density plot of fish length for $t\\leq G(x)$, $\\mu=%.2f$',muBar),'Interpreter','LaTex')
 
     savefig(B,"../../Figures/Project5/Problem1Mesh")                                       %Save as .fig
-    saveas(B,"../../Figures/Project5/Problem2Mesh.png")
+    saveas(B,"../../Figures/Project5/Problem1Mesh.png")
 
 %% Problem 2
 clear
@@ -38,8 +38,8 @@ clear
     legend('S','I','R','Location','East')
     ylabel('Individuals')
     xlabel('Time (Days)')
-    title(sprintf('Vaccinated Epidemic ($\\beta=8$, $\\gamma=1.5$, $y_{Total}=%.3g$)',...
-        floor(yUnVac(1,2)+(yUnVac(1,1)-yUnVac(end,1)))),'Interpreter','Latex')
+    title(sprintf('Unvaccinated Epidemic ($\\beta=8$, $\\gamma=1.5$, $y_{Total}=%.3g$)',...
+        1-ceil(yUnVac(end,1))/sum(yUnVac(1,:))),'Interpreter','Latex')
 
     savefig(H,"../../Figures/Project5/Problem2UnVaccinated")                                       %Save as .fig
     saveas(H,"../../Figures/Project5/Problem2UnVaccinated.png")
@@ -60,24 +60,24 @@ clear
     ylabel('Individuals')
     xlabel('Time (Days)')
     title(sprintf('Vaccinated Epidemic ($\\beta=8$, $\\gamma=1.5$, $y_{Total}=%.3g$)',...
-        floor(yVac(1,2)+(yVac(1,1)-yVac(end,1)))),'Interpreter','Latex')
+        (sum(yVac(end,2:3))-yVac(1,3))/sum(yVac(1,:))),'Interpreter','Latex')
 
     savefig(B,"../../Figures/Project5/Problem2Vaccinated")                                       %Save as .fig
     saveas(B,"../../Figures/Project5/Problem2Vaccinated.png")
     
 % R0
-    paramSample=rand(150,2).*paramsUnVac;
-    R0=paramSample(:,1)./paramSample(:,2);
-    yTotal=NaN(100,1);
-    for i=1:size(paramSample,1)
-        [~,ySamp]=ode45(@(t,y)SIRodeFunc(y,paramSample(i,:)),linspace(0,30,40),[999.9 .1 0]);
-        yTotal(i)=sum(ySamp(end,2:3))-ySamp(1,3)-1;
-    end
+%     paramSample=rand(150,2).*paramsUnVac;
+%     R0=paramSample(:,1)./paramSample(:,2);
+%     yTotal=NaN(100,1);
+%     for i=1:size(paramSample,1)
+%         [~,ySamp]=ode45(@(t,y)SIRodeFunc(y,paramSample(i,:)),linspace(0,30,40),[999.9 .1 0]);
+%         yTotal(i)=sum(ySamp(end,2:3))-ySamp(1,3)-1;
+%     end
     %Plot Model
     C=figure('Renderer', 'painters', 'Position', [200 200 750 550]);
-    
-    semilogy(R0,yTotal,LineSpec(1,'marker'),'MarkerSize',4)
-    axis([0 8 0 1000])
+    R0=@(yTotal)(-log(1-yTotal)./yTotal);
+    plot(R0(.00001:.01:.999999),.00001:.01:.999999,LineSpec(1,'line'))
+    %fimplicit(@(R0,yTotal)(1-yTotal-exp(-R0*yTotal)),[0 6 0 1])
     ylabel('Total Secondary Infections','Interpreter','Latex')
     xlabel('$R_0$','Interpreter','Latex')
     savefig(C,"../../Figures/Project5/Problem2R0")                                       %Save as .fig
@@ -105,7 +105,7 @@ clear
     ylabel('Individuals')
     xlabel('Time (Days)')
     title(sprintf('Boarding School Results ($\\beta=%.3g$, $\\gamma=%.3g$, $y_{Total}=%.3g$)',...
-        paramsOptimal,floor(sum(yOptimal(end,2:3))-yOptimal(1,3))),'Interpreter','Latex')
+        paramsOptimal,1-ceil(yOptimal(end,1))/sum(yOptimal(1,:))),'Interpreter','Latex')
 
     savefig(H,"../../Figures/Project5/Problem3InfluenzaFit")              %Save as .fig
     saveas(H,"../../Figures/Project5/Problem3InfluenzaFit.png")           %Save as .png
